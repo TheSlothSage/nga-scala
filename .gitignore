@@ -1,0 +1,16 @@
+dist/*
+nga/
+target/
+lib_managed/
+src_managed/
+src/main/nga/nga
+project/boot/
+project/plugins/project/
+project/target
+.history
+.cache
+.lib/
+.bsp
+.*swp
+*.class
+*.tasty
