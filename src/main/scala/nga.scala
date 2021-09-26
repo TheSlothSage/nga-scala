@@ -29,7 +29,6 @@ object VM_Options:
     else 
       type Code = Int
 
-
 /* ------------------------------------------------------------------ * 
  *  Description of the size of opcodes and cells using Scala Standard *
  *                                                                    *
@@ -112,31 +111,30 @@ class Memory (src: Array[Word]):
   def get : SizeT = 
     arr(ip)
   
+  def getOp : Op =
+    if VM_Options.optionPackingEnable == true then
+      opArr(opIp)
+    else
+      opArr(3)
+
   def next : Word = 
     arr(inc) 
 
-  def nextOp : Op =   
-    
-    if VM_Options.optionPackingEnable == false then
-      opArr = arr(inc).unpack
+  def nextOp : Op =  
+    if VM_Options.optionPackingEnable == true then
       
-    else
-      
-      if opIp == 4 then
+      if opIp == 3 then
         opIp = 0
         opArr = arr(inc).unpack
         
       else
         opIp = opIp + 1
-    
-    opArr(opIp)
-
-  def execHere (addr: Stack, data: Stack, mem: Memory) : Null =
-    opArr(ip).tailExec(addr, data, mem)
-  
-  val execThisHere = execHere(_: Stack, _: Stack, this)
-
-
+        
+      opArr(opIp)
+      
+    else
+      opArr = arr(inc).unpack
+      opArr(3)
 
 extension (xs: Word)
   def unpack : Array[Op] = 
@@ -153,9 +151,9 @@ class NGAInstance(image: Array[Word]):
   
   val addr, data = Stack()
   val mem = Memory(image)
-
-  def start : Null = 
-    mem.execThisHere(addr, data)
+  
+  def run =
+    mem.getOp.tailExec(addr,data,mem)
   
 // ----------------------------------------------------------------------
 
@@ -166,12 +164,15 @@ trait Op (o: Code):
   /* Allows for efficent tail recursion */
   @tailrec 
   final def tailExec (addr: Stack, data: Stack,  mem: Memory) : Null = 
-    this.code match 
-      case 26   => null
-      case 127  => null
-      case _    => this.exec(addr, data, mem)
-   
-    mem.nextOp.tailExec (addr, data, mem) 
+
+    this.exec(addr, data, mem)
+    
+    if mem.ip >= (mem.arr.size - 1) then
+      null
+    
+    else
+    mem.nextOp.tailExec (addr, data, mem)  
+
 
   def end : Null = null
 
@@ -220,7 +221,6 @@ sealed class VM_NOP extends Op(0):
 
 sealed class VM_LIT extends Op(1):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
-     
     data.push( mem.next )
     end 
 
