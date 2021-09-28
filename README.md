@@ -10,6 +10,19 @@ The address stack is used to keep state of a call trace, allowing one to return 
 
 The implementation also provides support for instruction packing allowing for superior memory utilization. 
 
+Example: 
+
+```scala
+import nga.*
+VM_Options.optionPackingEnable = false
+
+// LIT, LIT, ADD, END
+val img = Array ( 0x1, 1, 0x1, 2, 0x11, 0x1A )
+val inst = NGAInstance( img )
+inst.run
+
+// Output in Data Stack -> 3
+```
 
 VM implemented here in C:
 https://github.com/crcx/nga.git
@@ -18,11 +31,9 @@ Forth documentation here:
 http://forth.works/chapters/internals/nga.html
 
 
-
-Development Goals:
-
-- Create a working VM
-- Add support for packed instructions
-- Build tests for the VM
-- Run compiled forth code
-- Implement the inline assembler
+- [x] Implement working VM and interface
+- [x] Implement tests
+- [x] Write documentation for VM code
+- [x] Load raw images from multiple sources
+- [x] Implement Assembler and inline assmebling
+- [x] Implement REPL 
