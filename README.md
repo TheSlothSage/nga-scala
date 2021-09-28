@@ -31,6 +31,8 @@ Forth documentation here:
 http://forth.works/chapters/internals/nga.html
 
 
+Development Goals:
+
 - [x] Implement working VM and interface
 - [x] Implement tests
 - [ ] Write documentation for VM code
