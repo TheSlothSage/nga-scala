@@ -123,18 +123,15 @@ class Memory (src: Array[Word]):
   def nextOp : Op =  
     if VM_Options.optionPackingEnable == true then
       
-      if opIp == 3 then
+      if opIp >= 3 then
         opIp = 0
-        opArr = arr(inc).unpack
-        
+        opArr = next.unpack 
       else
         opIp = opIp + 1
-        
-      opArr(opIp)
       
+      getOp
     else
-      opArr = arr(inc).unpack
-      opArr(3)
+      getOperation(arr(inc).toByte) 
 
 extension (xs: Word)
   def unpack : Array[Op] = 
@@ -218,13 +215,11 @@ sealed class VM_NOP extends Op(0):
  *  Pushes the value at the incremented IP stack *
  * ---------------------------------------------------------------------- */
 
-
 sealed class VM_LIT extends Op(1):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+    
     data.push( mem.next )
     end 
-
-
 
 // DUP \\
 /* ----------------------------------*
@@ -282,8 +277,7 @@ sealed class VM_SWP extends Op(4):
 sealed class VM_PSH extends Op(5): 
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
-    addr.push (data.tos)
-    data.pop
+    addr.push (data.pop)
     end
 
 
@@ -383,7 +377,7 @@ sealed class VM_NEQ extends Op(12):
     end
 
 sealed class VM_LT extends Op(13):
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
     
     val top = data.pop
     val nxt = data.pop 
@@ -398,7 +392,7 @@ sealed class VM_LT extends Op(13):
     end
 
 sealed class VM_GT extends Op(14): 
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
     val nxt = data.pop
@@ -414,7 +408,7 @@ sealed class VM_GT extends Op(14):
     end
 
 sealed class VM_FCH extends Op(15):
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
     
     var top = data.pop 
 
@@ -428,7 +422,7 @@ sealed class VM_FCH extends Op(15):
     end
   
 sealed class VM_STR extends Op(16):
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
     val nxt = data.pop
@@ -438,16 +432,16 @@ sealed class VM_STR extends Op(16):
     end
   
 sealed class VM_ADD extends Op(17):
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
-
-    val top = data.pop 
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+  
+    val top = data.pop
     val nxt = data.pop
 
     data.push(nxt + top)
     end
 
 sealed class VM_SUB extends Op(18):
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
     val nxt = data.pop
@@ -456,7 +450,7 @@ sealed class VM_SUB extends Op(18):
     end
 
 sealed class VM_MUL extends Op(19):
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
     val nxt = data.pop
@@ -465,7 +459,7 @@ sealed class VM_MUL extends Op(19):
     end
 
 sealed class VM_DIV extends Op(20):
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.nos / data.tos
     val nxt = data.nos % data.nos
@@ -478,7 +472,7 @@ sealed class VM_DIV extends Op(20):
     end
 
 sealed class VM_AND extends Op(21):
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+ final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
     val nxt = data.pop
@@ -487,7 +481,7 @@ sealed class VM_AND extends Op(21):
     end
 
 sealed class VM_OR extends Op(22):
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
     val nxt = data.pop
@@ -496,7 +490,7 @@ sealed class VM_OR extends Op(22):
     end
 
 sealed class VM_XOR extends Op(23):
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
     val nxt = data.pop
@@ -505,7 +499,7 @@ sealed class VM_XOR extends Op(23):
     end
 
 sealed class VM_SFT extends Op(24):
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     var top = data.pop
     var nxt = data.pop
@@ -524,7 +518,7 @@ sealed class VM_SFT extends Op(24):
       
 
 sealed class VM_ZRET extends Op(25):
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     if (data.pop) == 0 then
       mem.setIp(addr.pop)
@@ -532,8 +526,8 @@ sealed class VM_ZRET extends Op(25):
     end
 
 sealed class VM_END extends Op(26):
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = end 
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = end 
 
 sealed class VM_ERR extends Op(127):
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null = end
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = end
 
