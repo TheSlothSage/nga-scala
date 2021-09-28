@@ -433,13 +433,13 @@ sealed class VM_FCH extends Op(15):
 
     end
 
-// \\
 sealed class VM_STR extends Op(16):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
     val nxt = data.pop
-
+    
+    mem.arr(top) = nxt
     end
   
 sealed class VM_ADD extends Op(17):
