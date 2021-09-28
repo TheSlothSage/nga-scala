@@ -33,7 +33,7 @@ http://forth.works/chapters/internals/nga.html
 
 - [x] Implement working VM and interface
 - [x] Implement tests
-- [x] Write documentation for VM code
-- [x] Load raw images from multiple sources
-- [x] Implement Assembler and inline assmebling
-- [x] Implement REPL 
+- [ ] Write documentation for VM code
+- [ ] Load raw images from multiple sources
+- [ ] Implement Assembler and inline assmebling
+- [ ] Implement REPL 
