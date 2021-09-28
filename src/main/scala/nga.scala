@@ -75,11 +75,10 @@ class Stack:
 
 
 /* -----------------------------------------------------------------------------*
- *  Represents executable memory as well as data being pushed by LIT.           *
+ *  Represents executable memory.                                               *
  *  Also stores the instruction pointer and methods to retrieve next operations *
- *  Takes a Word array and translates it to subclasses of Op()                  *
+ *  Represents stored images as Word arrays                                     *
  * -----------------------------------------------------------------------------*/ 
-
 
 class Memory (src: Array[Word]):
   
@@ -101,9 +100,6 @@ class Memory (src: Array[Word]):
   def dec : SizeT = 
     ip = ip - 1
     ip
-
-  def getOffset(i: Int) : SizeT =
-    arr(ip + i)
 
   def getFrom (i: Int) : SizeT = 
     arr(i)
@@ -211,8 +207,8 @@ sealed class VM_NOP extends Op(0):
 
 // LIT \\
 /* ---------------------------------------------------------------------- *
- *  LIT is followed by a value to push to the stack.                      * 
- *  Pushes the value at the incremented IP stack *
+ *  LIT is followed by a Cell with datato push to the stack.              * 
+ *  Pushes the value at the incremented IP                                *
  * ---------------------------------------------------------------------- */
 
 sealed class VM_LIT extends Op(1):
@@ -221,12 +217,11 @@ sealed class VM_LIT extends Op(1):
     data.push( mem.next )
     end 
 
+
 // DUP \\
 /* ----------------------------------*
  *  Duplicates top of the stack      *
- *  C++ impl ->                      *
  * ----------------------------------*/
-
 
 sealed class VM_DUP extends Op(2):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
@@ -241,7 +236,6 @@ sealed class VM_DUP extends Op(2):
  *  Removes value from the top of the stack *
  * ---------------------------------------- */ 
 
-
 sealed class VM_DRP extends Op(3): 
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
       
@@ -254,7 +248,6 @@ sealed class VM_DRP extends Op(3):
 /* ----------------------------------------------------------- * 
  *  Switch the top and second to the top entries in the stack. *
  * ----------------------------------------------------------- */
-
 
 sealed class VM_SWP extends Op(4):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
@@ -273,7 +266,6 @@ sealed class VM_SWP extends Op(4):
  *  Moves the value at the top of the data stack to the address stack *
  * ------------------------------------------------------------------ */ 
 
-
 sealed class VM_PSH extends Op(5): 
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
@@ -286,13 +278,17 @@ sealed class VM_PSH extends Op(5):
  *  Moves top item on the address stack to the data stack *
  * ------------------------------------------------------ */   
 
-
 sealed class VM_POP extends Op(6): 
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
     
     data.push( addr.pop )
     end
 
+
+// JMP \\
+/* ------------------------------------------- *
+ *  Jumps to address stored on the Data stack  *
+ * ------------------------------------------- */
 
 sealed class VM_JMP extends Op(7):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null =
@@ -306,7 +302,6 @@ sealed class VM_JMP extends Op(7):
  *  Calls a subroutine with address at the top of the stack         *
  * ---------------------------------------------------------------- */ 
 
-
 sealed class VM_CAL extends Op(8): 
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
@@ -319,7 +314,6 @@ sealed class VM_CAL extends Op(8):
 /* ----------------------------------------------------------------- *
  *  Conditional call taking a flag and a pointer to an address       *
  * ----------------------------------------------------------------- */ 
-
 
 sealed class VM_CCAL extends Op(9):
    final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
@@ -336,9 +330,9 @@ sealed class VM_CCAL extends Op(9):
 
 
 // RET \\
-/* --------------------------------------------- *
- *  Returns flow to instruction after last call  *
- * --------------------------------------------- */                
+/* ----------------------------------------------------------------------------------- *
+ *  Returns flow to instruction after last call by popping top value of Address stack  *
+ * ----------------------------------------------------------------------------------- */                
 
 sealed class VM_RET extends Op(10):
    final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
@@ -346,7 +340,18 @@ sealed class VM_RET extends Op(10):
     mem.setIp(addr.pop)
     end
 
-sealed class VM_EQ extends Op(11): 
+// EQ, NEQ, LT, GT \\
+/* ---------------------------------------- *
+ * Each evaluates the specified conditions  *
+ * if false pushes 0, else any other value  *
+ *                                          *
+ * EQ:  if eq                               *
+ * NEQ: if ~eq                              *
+ * LT:  if less than                        *
+ * GT:  if greater than                     *                                           *
+ * ---------------------------------------- */
+
+sealed class VM_EQ extends Op(11):                                      
    final def exec (addr: Stack, data: Stack, mem: Memory) : Null  = 
 
     val top = data.pop
@@ -402,10 +407,17 @@ sealed class VM_GT extends Op(14):
     
     else
       data.push(0)
-
-
+    
     data.push(top)
     end
+
+
+// FCH \\
+/* -------------------------------------------- *
+ * Fetches data from an address in the image.   *
+ * With signed numbers, it can be used to query * 
+ * information about VM state.                  *
+ * -------------------------------------------- */ 
 
 sealed class VM_FCH extends Op(15):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
@@ -420,14 +432,13 @@ sealed class VM_FCH extends Op(15):
       case _    =>  data.push( mem.getFrom( top ).toByte )
 
     end
-  
+
+// \\
 sealed class VM_STR extends Op(16):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
     val nxt = data.pop
-
-   // do the thing
 
     end
   
