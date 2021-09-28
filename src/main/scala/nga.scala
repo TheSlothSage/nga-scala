@@ -164,11 +164,11 @@ trait Op (o: Code):
 
     this.exec(addr, data, mem)
     
-    if mem.ip >= (mem.arr.size - 1) then
+    if mem.ip >= (mem.arr.size) then
       null
     
     else
-    mem.nextOp.tailExec (addr, data, mem)  
+      mem.nextOp.tailExec (addr, data, mem)  
 
 
   def end : Null = null
@@ -526,8 +526,10 @@ sealed class VM_ZRET extends Op(25):
     end
 
 sealed class VM_END extends Op(26):
-  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = end 
+  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
+    mem.setIp( mem.arr.size )
+    end
 
 sealed class VM_ERR extends Op(127):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = end
-
+  
