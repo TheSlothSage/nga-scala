@@ -1,4 +1,4 @@
-package nga
+package vm
 
 import scala.annotation.tailrec
 
@@ -14,6 +14,8 @@ object VM_Options:
   /* Enable instruction packing. */ 
 
   var optionPackingEnable = true
+  var optionMaxAddrDepth = 256 // Not used
+  var optionMaxDataDepth = 512 // Not used
 
   /* Not yet implemented. Allows for on the fly assmebling */ 
 
@@ -54,7 +56,8 @@ class Stack:
 
   private var elements: List[SizeT] = Nil
 
-  def push (x: SizeT): Unit = elements = x :: elements 
+  def push (x: SizeT): Unit = 
+    elements = x :: elements 
   
   /* If the stack is too small for these, just return 0. */ 
   
