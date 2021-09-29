@@ -1,4 +1,4 @@
-package nga
+package vm
 
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -50,6 +50,7 @@ class TestSuite extends AnyFunSuite:
     inst.run
     assert(inst.data.tos == 30)
   }
+ 
   test("Add w/ packing") {
     VM_Options.optionPackingEnable = true
 

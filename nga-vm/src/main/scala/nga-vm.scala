@@ -1,4 +1,4 @@
-package nga
+package vm
 
 import scala.annotation.tailrec
 
