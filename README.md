@@ -21,13 +21,14 @@ val inst = NGAInstance( img )
 inst.run
 
 // Output in Data Stack -> 3
-```
+
 val asm_img = s"""
 lit 1 
 lit 2
 add
 end
 """.toImage
+```
 
 val asm_inst = NGAIntsance( asm_img )
 asm_inst.run 
