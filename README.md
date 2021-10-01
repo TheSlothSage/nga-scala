@@ -28,10 +28,10 @@ lit 2
 add
 end
 """.toImage
-```
 
 val asm_inst = NGAIntsance( asm_img )
 asm_inst.run 
+```
 
 VM implemented here in C:
 https://github.com/crcx/nga.git
