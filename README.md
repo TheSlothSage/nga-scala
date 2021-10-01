@@ -14,7 +14,6 @@ Example:
 
 ```scala
 import nga.*
-VM_Options.optionPackingEnable = false
 
 // LIT, LIT, ADD, END
 val img = Array ( 0x1, 1, 0x1, 2, 0x11, 0x1A )
@@ -23,6 +22,15 @@ inst.run
 
 // Output in Data Stack -> 3
 ```
+val asm_img = s"""
+lit 1 
+lit 2
+add
+end
+""".toImage
+
+val asm_inst = NGAIntsance( asm_img )
+asm_inst.run 
 
 VM implemented here in C:
 https://github.com/crcx/nga.git
@@ -37,5 +45,5 @@ Development Goals:
 - [x] Implement tests
 - [ ] Write documentation for VM code
 - [ ] Load raw images from multiple sources
-- [ ] Implement Assembler and inline assmebling
+- [x] Implement Assembler and inline assmebling
 - [ ] Implement REPL 
