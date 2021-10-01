@@ -1,4 +1,4 @@
-package vm
+package nga
 
 import scala.annotation.tailrec
 
@@ -13,7 +13,7 @@ object VM_Options:
   
   /* Enable instruction packing. */ 
 
-  var optionPackingEnable = true
+  var optionPackingEnable = false
   var optionMaxAddrDepth = 256 // Not used
   var optionMaxDataDepth = 512 // Not used
 
@@ -229,7 +229,7 @@ sealed class VM_LIT extends Op(1):
 sealed class VM_DUP extends Op(2):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
   
-    data.push(data.nos)
+    data.push(data.tos)
     end 
 
 

@@ -1,10 +1,41 @@
-package vm
+package nga
 
 import org.scalatest.funsuite.AnyFunSuite
 
 val simpleStackTestNoPacking = Array (0x1, 10, 0x1A)
 val simpleStackTestPacking = Array(0x11A, 10)
 
+val short_test = s"""
+lit 1
+dup
+add 
+end
+""".toImage
+
+/* (1+1) -> (2*2) -> (4/4) -> (1 - 0) -> (1 ^ 1) */
+
+val operator_test = s"""
+lit 1
+dup 
+add 
+
+lit 2
+mul
+
+lit 4
+div
+
+swp
+sub
+
+lit -1 
+mul 
+
+lit 1
+xor 
+
+end
+""".toImage
 
 
 class TestSuite extends AnyFunSuite:
@@ -27,35 +58,20 @@ class TestSuite extends AnyFunSuite:
     inst.run
   }
 
-  test("Push 10 to stack - w/o packing") {
+  test("Run small assmebled binary") {
     VM_Options.optionPackingEnable = false
 
-    val inst = NGAInstance(simpleStackTestNoPacking)
+    val inst = NGAInstance(short_test)
     inst.run
-    assert(inst.data.tos == 10)
+    assert(inst.data.tos == 2)
   }
-
-  test("Push 10 to stack - w/ packing") {
-    VM_Options.optionPackingEnable = true
-    
-    val inst = NGAInstance(simpleStackTestPacking)
-    inst.run
-    assert(inst.data.tos == 10) 
-  }
-
-  test("Add w/o packing") {
+  
+  test("Test operations with assembled binary") {
     VM_Options.optionPackingEnable = false
 
-    val inst = NGAInstance(Array(1, 10, 1, 20, 17, 26))
+    val inst = NGAInstance(operator_test)
     inst.run
-    assert(inst.data.tos == 30)
+    assert(inst.data.tos == 0)
   }
- 
-  test("Add w/ packing") {
-    VM_Options.optionPackingEnable = true
-
-    val inst = NGAInstance(Array(0x101111A, 10, 20))
-    inst.run
-    assert(inst.data.tos == 30)
-  }
+  
 
