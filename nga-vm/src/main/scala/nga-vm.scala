@@ -34,8 +34,9 @@ object VM_Options:
 /* ------------------------------------------------------------------ * 
  *  Description of the size of opcodes and cells using Scala Standard *
  *                                                                    *
- * Byte: 8 bit                                                        *
+ * Byte: 8 bit -- (C: Char)                                           *
  * Short : 16 bit -- (C: WORD)                                        *
+ * Char : 16 bit -- (C: unsigned WORD)                                *
  * Int : 32 bit   -- (C: DWORD)                                       *
  * long : 64 bit  -- (C: QWORD)                                       *
  * ------------------------------------------------------------------ */
@@ -44,7 +45,11 @@ type Word = VM_Options.Word
 type Code = VM_Options.Code
 type Data = VM_Options.Data
 
+/* Define toCode based on packing option */ 
 
+extension (xs: Int) 
+  def toCode : Code = 
+    xs.toByte
 
 /* ----------------------------------------------------- *
  * Address and Data stacks  will use this implementation * 
@@ -130,7 +135,7 @@ class Memory (src: Array[Word]):
       
       getOp
     else
-      getOperation(arr(inc).toByte) 
+      getOperation(arr(inc).toCode) 
 
 extension (xs: Word)
   def unpack : Array[Op] = 
@@ -432,7 +437,7 @@ sealed class VM_FCH extends Op(15):
       case -2   =>  data.push(addr.size)
       case -3   =>  data.push(mem.arr.size)
 
-      case _    =>  data.push( mem.getFrom( top ).toByte )
+      case _    =>  data.push( mem.getFrom( top ).toCode )
 
     end
 
