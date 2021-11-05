@@ -35,7 +35,7 @@ ret""".assembleAndRun
 
 // Output in Data Stack -> 0 
 
-'''
+```
 
 VM implemented here in C:
 https://github.com/crcx/nga.git
