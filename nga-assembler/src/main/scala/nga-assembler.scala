@@ -45,8 +45,8 @@ def getOpCode (src: String) : Option[Code] = src match
     case "neq"   => Some(0xC)
     case "lt"    => Some(0xD)
     case "gt"    => Some(0xE)
-    case "fetch" => Some(0xF)
-    case "store" => Some(0x10)
+    case "fetch" => Some(0xF)    
+    case "store" => Some(0x10) 
     case "add"   => Some(0x11)
     case "sub"   => Some(0x12)
     case "mul"   => Some(0x13)
@@ -129,6 +129,9 @@ case class ErrorMessage (what: String) extends Parsed
 def parseLine (src: List[Token]) : List[Parsed] = 
     src match
 
+        case (Operation(0xF) | Operation(0x10)) :: tail if VM_Options.optionPackingEnable => 
+            ErrorMessage("store and fetch are not supported with inline packing") :: Nil 
+
         case Operation(x) :: Num (y) :: Nil if checkFlowControl(x) => 
             Packable(1) :: Data(y) :: FlowControl(x) :: Nil
         
@@ -152,7 +155,7 @@ def parseLine (src: List[Token]) : List[Parsed] =
         case Tag(x) :: Nil => 
             Label(x) :: Nil 
         
-        case Operation(x) :: ID (y) :: Nil if !checkFlowControl(x) => 
+        case Operation(x) :: ID (y) :: Nil if !checkFlowControl(x) =>
             Packable(1) :: Resolve(y) :: Packable(15) :: Packable(x) :: Nil 
         
         case Tag(x) :: Num(y) :: Nil => 
