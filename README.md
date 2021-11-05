@@ -22,15 +22,18 @@ inst.run
 
 // Output in Data Stack -> 3
 
-val asm_img = s"""
-lit 1 
-lit 2
-add
+val asm_img = s"""call foo
+call main
+and
 end
-""".toImage
+:main
+lit 1
+ret
+:foo
+lit 2
+ret""".assembleAndRun
 
-val asm_inst = NGAIntsance( asm_img )
-asm_inst.run 
+// Output in Data Stack -> 0 
 ```
 
 VM implemented here in C:
