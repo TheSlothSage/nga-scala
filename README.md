@@ -22,7 +22,6 @@ inst.run
 
 // Output in Data Stack -> 3
 
-<<<<<<< HEAD
 val asm_img = s"""call foo
 call main
 and
