@@ -14,6 +14,7 @@ object VM_Options:
   /* Enable instruction packing. */ 
 
   var optionPackingEnable = false
+  var optionDebug = true
   var optionMaxAddrDepth = 256 // Not used
   var optionMaxDataDepth = 512 // Not used
 
@@ -71,7 +72,7 @@ class Stack:
   
   def nos : SizeT = 
     (elements.tail).head
-  
+
   def last : SizeT = elements.last
   
   def pop : SizeT =
@@ -153,8 +154,37 @@ class NGAInstance(image: Array[Word]):
   val addr, data = Stack()
   val mem = Memory(image)
   
-  def run =
+  def run : NGAInstance =
     mem.getOp.tailExec(addr,data,mem)
+    
+    if VM_Options.optionDebug then
+      
+      println("\n-- DATA STACK --") 
+
+      if data.size > 0 then
+
+        println(" TOS -> " + data.tos.toString )
+
+      else 
+        
+        println(" EMPTY ") 
+
+      if data.size > 1 then
+
+        println(" NOS -> " + data.nos.toString ) 
+      
+      else
+        
+        println(" END ")
+      
+
+      println("\n-- ADDR STACK --")
+      println(" SIZE -> " + addr.size.toString)
+    
+
+    this
+
+
   
 // ----------------------------------------------------------------------
 
