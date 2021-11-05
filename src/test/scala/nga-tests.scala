@@ -5,7 +5,6 @@ import org.scalatest.funsuite.AnyFunSuite
 val simpleStackTestNoPacking = Array (0x1, 10, 0x1A)
 val simpleStackTestPacking = Array(0x11A, 10)
 
-
 class TestSuite extends AnyFunSuite:
   
   test("Construct instance") {
