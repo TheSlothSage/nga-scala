@@ -1,36 +1,33 @@
 package nga
+ 
+  /* Singleton storing options for VM runtime */ 
+  object VM_Options: 
 
-import scala.annotation.tailrec
-
-/* Singleton storing options for VM runtime */ 
-
-object VM_Options: 
-
-  type Word = Int
-  type Code = Byte
-  type Data = Word
+    type Word = Int
+    type Code = Byte
+    type Data = Word
 
   
-  /* Enable instruction packing. */ 
+    /* Enable instruction packing. */ 
 
-  var optionPackingEnable = false
-  var optionDebug = true
-  var optionMaxAddrDepth = 256 // Not used
-  var optionMaxDataDepth = 512 // Not used
+    var optionPackingEnable = false
+    var optionDebug = true
+    var optionMaxAddrDepth = 256 // Not used
+    var optionMaxDataDepth = 512 // Not used
 
-  /* Not yet implemented. Allows for on the fly assmebling */ 
+    /* Not yet implemented. Allows for on the fly assmebling */ 
 
-  // var optionAssemblerMode = false 
+    // var optionAssemblerMode = false 
 
-  val optionVersionString = "nga-scala v0.1a"
+    val optionVersionString = "nga-scala v0.1a"
   
 
-  def initVMOptions =
-    if optionPackingEnable then
-      type Code = Byte
+    def initVMOptions =
+      if optionPackingEnable then
+        type Code = Byte
     
-    else 
-      type Code = Int
+      else 
+        type Code = Int
 
 /* ------------------------------------------------------------------ * 
  *  Description of the size of opcodes and cells using Scala Standard *
@@ -45,6 +42,10 @@ object VM_Options:
 type Word = VM_Options.Word
 type Code = VM_Options.Code
 type Data = VM_Options.Data
+
+
+import scala.annotation.tailrec
+
 
 /* Define toCode based on packing option */ 
 
@@ -149,40 +150,6 @@ extension (xs: Word)
     val arr = Array(d, c, b, a).map(_.toByte)
     arr.map(getOperation) 
 
-class NGAInstance(image: Array[Word]): 
-  
-  val addr, data = Stack()
-  val mem = Memory(image)
-  
-  def run : NGAInstance =
-    mem.getOp.tailExec(addr,data,mem)
-    
-    if VM_Options.optionDebug then
-      
-      println("\n-- DATA STACK --") 
-
-      if data.size > 0 then
-
-        println(" TOS -> " + data.tos.toString )
-
-      else 
-        
-        println(" EMPTY ") 
-
-      if data.size > 1 then
-
-        println(" NOS -> " + data.nos.toString ) 
-      
-      else
-        
-        println(" END ")
-      
-
-      println("\n-- ADDR STACK --")
-      println(" SIZE -> " + addr.size.toString)
-    
-
-    this
 
 
   
@@ -581,4 +548,35 @@ sealed class VM_END extends Op(26):
 
 sealed class VM_ERR extends Op(127):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = end
+
+
+
+class NGAInstance(image: Array[Word]): 
+  
+  val addr, data = Stack()
+  val mem = Memory(image)
+  
+  def run : NGAInstance =
+    mem.getOp.tailExec(addr,data,mem)
+    
+    if VM_Options.optionDebug then
+      println("\n-- DATA STACK --") 
+
+      if data.size > 0 then
+        println(" TOS -> " + data.tos.toString )
+
+      else 
+        println(" EMPTY ") 
+
+        if data.size > 1 then
+          println(" NOS -> " + data.nos.toString ) 
+      
+        else
+          println(" END ")
+      
+        println("\n-- ADDR STACK --")
+        println(" SIZE -> " + addr.size.toString)
+    
+    this
+
   
