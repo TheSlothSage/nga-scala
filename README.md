@@ -35,7 +35,7 @@ ret""".assembleAndRun
 
 // Output in Data Stack -> 0 
 
-// Get value from image
+// Get value from image DOES NOT WORK WITH PACKING
 val val_img = s"""lit value1
 fetch
 swp
