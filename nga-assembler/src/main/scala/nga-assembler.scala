@@ -406,11 +406,10 @@ extension (xs: String)
         
         (parsed.continue <+> pack) +> continue <+> resolveAndExtract
 
-    def assembleAndRun : Option[NGAInstance] = xs.assemble match
+    def assembleAndRun : Option[Instance[Word]] = xs.assemble match
 
-        case Some(arr) => 
-            val x = NGAInstance(arr) 
-            Some(x.run) 
+        case Some(arr) =>  
+            Some(DefaultInstance(arr).run)  
         case None =>
             None
 
@@ -421,7 +420,7 @@ trait InlineAssembler[A] (f: A=>String, buf: A):
     def assembleTo[B](g: Array[Word] => B) : Option[B] = 
         f(buf).assemble <+> g
         
-    def assembleAndRun : Option[NGAInstance] = 
+    def assembleAndRun[F, B] : Option[Instance[Word]] = 
         f(buf).assembleAndRun
 
 class DefaultAssembler (s: String) extends InlineAssembler[String]((s) => s, s) 
