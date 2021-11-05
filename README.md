@@ -34,6 +34,18 @@ lit 2
 ret""".assembleAndRun
 
 // Output in Data Stack -> 0 
+
+// Get value from image
+val val_img = s"""lit value1
+fetch
+swp
+add value2
+end
+:value1 30
+:value2 20""".assembleAndRun
+
+// Output in Data Stack -> 50, 15
+
 ```
 
 VM implemented here in C:
