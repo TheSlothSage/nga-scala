@@ -1,36 +1,33 @@
 package nga
+ 
+  /* Singleton storing options for VM runtime */ 
+  object VM_Options: 
 
-import scala.annotation.tailrec
-
-/* Singleton storing options for VM runtime */ 
-
-object VM_Options: 
-
-  type Word = Int
-  type Code = Byte
-  type Data = Word
+    type Word = Int
+    type Code = Byte
+    type Data = Word
 
   
-  /* Enable instruction packing. */ 
+    /* Enable instruction packing. */ 
 
-  var optionPackingEnable = false
-  var optionDebug = true
-  var optionMaxAddrDepth = 256 // Not used
-  var optionMaxDataDepth = 512 // Not used
+    var optionPackingEnable = false
+    var optionDebug = true
+    var optionMaxAddrDepth = 256 // Not used
+    var optionMaxDataDepth = 512 // Not used
 
-  /* Not yet implemented. Allows for on the fly assmebling */ 
+    /* Not yet implemented. Allows for on the fly assmebling */ 
 
-  // var optionAssemblerMode = false 
+    // var optionAssemblerMode = false 
 
-  val optionVersionString = "nga-scala v0.1a"
+    val optionVersionString = "nga-scala v0.1a"
   
 
-  def initVMOptions =
-    if optionPackingEnable then
-      type Code = Byte
+    def initVMOptions =
+      if optionPackingEnable then
+        type Code = Byte
     
-    else 
-      type Code = Int
+      else 
+        type Code = Int
 
 /* ------------------------------------------------------------------ * 
  *  Description of the size of opcodes and cells using Scala Standard *
@@ -46,6 +43,10 @@ type Word = VM_Options.Word
 type Code = VM_Options.Code
 type Data = VM_Options.Data
 
+
+import scala.annotation.tailrec
+
+
 /* Define toCode based on packing option */ 
 
 extension (xs: Int) 
@@ -57,7 +58,7 @@ extension (xs: Int)
  * ----------------------------------------------------- */
 
 
-class Stack:
+private class Stack:
   type SizeT = Data
 
   private var elements: List[SizeT] = Nil
@@ -89,7 +90,7 @@ class Stack:
  *  Represents stored images as Word arrays                                     *
  * -----------------------------------------------------------------------------*/ 
 
-class Memory (src: Array[Word]):
+private class Memory (src: Array[Word]):
   
   type SizeT = Word
   
@@ -148,48 +149,11 @@ extension (xs: Word)
     // Reverse the order for little Endian
     val arr = Array(d, c, b, a).map(_.toByte)
     arr.map(getOperation) 
-
-class NGAInstance(image: Array[Word]): 
-  
-  val addr, data = Stack()
-  val mem = Memory(image)
-  
-  def run : NGAInstance =
-    mem.getOp.tailExec(addr,data,mem)
-    
-    if VM_Options.optionDebug then
-      
-      println("\n-- DATA STACK --") 
-
-      if data.size > 0 then
-
-        println(" TOS -> " + data.tos.toString )
-
-      else 
-        
-        println(" EMPTY ") 
-
-      if data.size > 1 then
-
-        println(" NOS -> " + data.nos.toString ) 
-      
-      else
-        
-        println(" END ")
-      
-
-      println("\n-- ADDR STACK --")
-      println(" SIZE -> " + addr.size.toString)
-    
-
-    this
-
-
   
 // ----------------------------------------------------------------------
 
-trait Op (o: Code): 
-  def exec (addr: Stack, data: Stack, mem: Memory) : Null
+private trait Op (o: Code): 
+  def exec (addr: Stack, data: Stack, mem: Memory) : Null 
   val code = o
 
   /* Allows for efficent tail recursion */
@@ -207,7 +171,7 @@ trait Op (o: Code):
 
   def end : Null = null
 
-def getOperation (c : Code) : Op = c match
+private def getOperation (c : Code) : Op = c match
   case 0x0  => VM_NOP() 
   case 0x1  => VM_LIT()
   case 0x2  => VM_DUP()
@@ -238,7 +202,7 @@ def getOperation (c : Code) : Op = c match
   case _    => VM_ERR()  
 
 // Does nothing, used for timing or alignment.
-sealed class VM_NOP extends Op(0):
+private sealed class VM_NOP extends Op(0):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null =
     end 
 
@@ -249,7 +213,7 @@ sealed class VM_NOP extends Op(0):
  *  Pushes the value at the incremented IP                                *
  * ---------------------------------------------------------------------- */
 
-sealed class VM_LIT extends Op(1):
+private sealed class VM_LIT extends Op(1):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
     
     data.push( mem.next )
@@ -261,7 +225,7 @@ sealed class VM_LIT extends Op(1):
  *  Duplicates top of the stack      *
  * ----------------------------------*/
 
-sealed class VM_DUP extends Op(2):
+private sealed class VM_DUP extends Op(2):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
   
     data.push(data.tos)
@@ -274,7 +238,7 @@ sealed class VM_DUP extends Op(2):
  *  Removes value from the top of the stack *
  * ---------------------------------------- */ 
 
-sealed class VM_DRP extends Op(3): 
+private sealed class VM_DRP extends Op(3): 
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
       
       val drop = data.pop
@@ -287,7 +251,7 @@ sealed class VM_DRP extends Op(3):
  *  Switch the top and second to the top entries in the stack. *
  * ----------------------------------------------------------- */
 
-sealed class VM_SWP extends Op(4):
+private sealed class VM_SWP extends Op(4):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
     
     val a = data.pop
@@ -304,7 +268,7 @@ sealed class VM_SWP extends Op(4):
  *  Moves the value at the top of the data stack to the address stack *
  * ------------------------------------------------------------------ */ 
 
-sealed class VM_PSH extends Op(5): 
+private sealed class VM_PSH extends Op(5): 
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     addr.push (data.pop)
@@ -316,7 +280,7 @@ sealed class VM_PSH extends Op(5):
  *  Moves top item on the address stack to the data stack *
  * ------------------------------------------------------ */   
 
-sealed class VM_POP extends Op(6): 
+private sealed class VM_POP extends Op(6): 
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
     
     data.push( addr.pop )
@@ -328,7 +292,7 @@ sealed class VM_POP extends Op(6):
  *  Jumps to address stored on the Data stack  *
  * ------------------------------------------- */
 
-sealed class VM_JMP extends Op(7):
+private sealed class VM_JMP extends Op(7):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null =
     
     mem.setIp(data.pop - 1) 
@@ -340,7 +304,7 @@ sealed class VM_JMP extends Op(7):
  *  Calls a subroutine with address at the top of the stack         *
  * ---------------------------------------------------------------- */ 
 
-sealed class VM_CAL extends Op(8): 
+private sealed class VM_CAL extends Op(8): 
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     addr.push(mem.ip)
@@ -353,7 +317,7 @@ sealed class VM_CAL extends Op(8):
  *  Conditional call taking a flag and a pointer to an address       *
  * ----------------------------------------------------------------- */ 
 
-sealed class VM_CCAL extends Op(9):
+private sealed class VM_CCAL extends Op(9):
    final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val a = data.pop // addr 
@@ -372,7 +336,7 @@ sealed class VM_CCAL extends Op(9):
  *  Returns flow to instruction after last call by popping top value of Address stack  *
  * ----------------------------------------------------------------------------------- */                
 
-sealed class VM_RET extends Op(10):
+private sealed class VM_RET extends Op(10):
    final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
     
     mem.setIp(addr.pop)
@@ -386,10 +350,10 @@ sealed class VM_RET extends Op(10):
  * EQ:  if eq                               *
  * NEQ: if ~eq                              *
  * LT:  if less than                        *
- * GT:  if greater than                     *                                           *
+ * GT:  if greater than                     *                                           
  * ---------------------------------------- */
 
-sealed class VM_EQ extends Op(11):                                      
+private sealed class VM_EQ extends Op(11):                                      
    final def exec (addr: Stack, data: Stack, mem: Memory) : Null  = 
 
     val top = data.pop
@@ -404,7 +368,7 @@ sealed class VM_EQ extends Op(11):
     data.push(top)
     end
 
-sealed class VM_NEQ extends Op(12):
+private sealed class VM_NEQ extends Op(12):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
@@ -419,7 +383,7 @@ sealed class VM_NEQ extends Op(12):
     data.push(top) 
     end
 
-sealed class VM_LT extends Op(13):
+private sealed class VM_LT extends Op(13):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
     
     val top = data.pop
@@ -434,7 +398,7 @@ sealed class VM_LT extends Op(13):
     data.push(top)
     end
 
-sealed class VM_GT extends Op(14): 
+private sealed class VM_GT extends Op(14): 
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
@@ -457,7 +421,7 @@ sealed class VM_GT extends Op(14):
  * information about VM state.                  *
  * -------------------------------------------- */ 
 
-sealed class VM_FCH extends Op(15):
+private sealed class VM_FCH extends Op(15):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
     
     var top = data.pop 
@@ -471,7 +435,7 @@ sealed class VM_FCH extends Op(15):
 
     end
 
-sealed class VM_STR extends Op(16):
+private sealed class VM_STR extends Op(16):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
@@ -480,7 +444,7 @@ sealed class VM_STR extends Op(16):
     mem.arr(top) = nxt
     end
   
-sealed class VM_ADD extends Op(17):
+private sealed class VM_ADD extends Op(17):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
   
     val top = data.pop
@@ -489,7 +453,7 @@ sealed class VM_ADD extends Op(17):
     data.push(nxt + top)
     end
 
-sealed class VM_SUB extends Op(18):
+private sealed class VM_SUB extends Op(18):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
@@ -498,7 +462,7 @@ sealed class VM_SUB extends Op(18):
     data.push (nxt - top)
     end
 
-sealed class VM_MUL extends Op(19):
+private sealed class VM_MUL extends Op(19):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
@@ -507,7 +471,7 @@ sealed class VM_MUL extends Op(19):
     data.push (nxt * top)
     end
 
-sealed class VM_DIV extends Op(20):
+private sealed class VM_DIV extends Op(20):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.nos / data.tos
@@ -520,7 +484,7 @@ sealed class VM_DIV extends Op(20):
     data.push(top)
     end
 
-sealed class VM_AND extends Op(21):
+private sealed class VM_AND extends Op(21):
  final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
@@ -529,7 +493,7 @@ sealed class VM_AND extends Op(21):
     data.push( top & nxt )
     end
 
-sealed class VM_OR extends Op(22):
+private sealed class VM_OR extends Op(22):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
@@ -538,7 +502,7 @@ sealed class VM_OR extends Op(22):
     data.push( top | nxt )
     end
 
-sealed class VM_XOR extends Op(23):
+private sealed class VM_XOR extends Op(23):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     val top = data.pop
@@ -547,7 +511,7 @@ sealed class VM_XOR extends Op(23):
     data.push( top ^ nxt )
     end
 
-sealed class VM_SFT extends Op(24):
+private sealed class VM_SFT extends Op(24):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     var top = data.pop
@@ -566,7 +530,7 @@ sealed class VM_SFT extends Op(24):
     end
       
 
-sealed class VM_ZRET extends Op(25):
+private sealed class VM_ZRET extends Op(25):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
 
     if (data.pop) == 0 then
@@ -574,11 +538,21 @@ sealed class VM_ZRET extends Op(25):
 
     end
 
-sealed class VM_END extends Op(26):
+private sealed class VM_END extends Op(26):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = 
     mem.setIp( mem.arr.size )
     end
 
-sealed class VM_ERR extends Op(127):
+private sealed class VM_ERR extends Op(127):
   final def exec (addr: Stack, data: Stack, mem: Memory) : Null = end
+
+
+trait Instance[B] (bind: Array[B]=>Array[Word], buf: Array[B]): 
+  val data, addr = Stack()
   
+  def run : Instance[B] = 
+    val mem = Memory( bind(buf) ) 
+    mem.getOp.tailExec(addr, data, mem) 
+    this
+
+case class DefaultInstance(arr: Array[Word]) extends Instance[Word]((i)=>i, arr) 

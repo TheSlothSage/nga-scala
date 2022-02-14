@@ -1,26 +1,28 @@
-package nga
+package nga 
+
+
 
 import scala.annotation.tailrec
 import scala.language.postfixOps
 import scala.collection.mutable.HashMap
 
-type StateT = ( List[String], List[Token] )
+private type StateT = ( List[String], List[Token] )
 
 
 /* Tokens which will be scanned for and used to check grammar */ 
 
-abstract class Token
+private abstract class Token
 
-case class Operation (opCode: Code) extends Token
-case class Num (rval: Word) extends Token
-case class ID (src: String) extends Token
+private case class Operation (opCode: Code) extends Token
+private case class Num (rval: Word) extends Token
+private case class ID (src: String) extends Token
 
 /* Tag indicates a well formed label in code which is a source to be resolved */ 
-case class Tag (id: String) extends Token
+private case class Tag (id: String) extends Token
 
 /* ---------------------------------------------------------------*/ 
 
-def checkFlowControl (src: Code) : Boolean = 
+private def checkFlowControl (src: Code) : Boolean = 
 
     if src == 0x7 || src == 0x8 || src == 0x9 || src == 0xA || src == 0x19 || src == 0x26 then 
         true
@@ -28,7 +30,7 @@ def checkFlowControl (src: Code) : Boolean =
     else 
         false 
 
-def getOpCode (src: String) : Option[Code] = src match
+private def getOpCode (src: String) : Option[Code] = src match
 
     case "nop"   => Some(0x0)
     case "lit"   => Some(0x1)
@@ -45,8 +47,8 @@ def getOpCode (src: String) : Option[Code] = src match
     case "neq"   => Some(0xC)
     case "lt"    => Some(0xD)
     case "gt"    => Some(0xE)
-    case "fetch" => Some(0xF)
-    case "store" => Some(0x10)
+    case "fetch" => Some(0xF)    
+    case "store" => Some(0x10) 
     case "add"   => Some(0x11)
     case "sub"   => Some(0x12)
     case "mul"   => Some(0x13)
@@ -63,23 +65,23 @@ def getOpCode (src: String) : Option[Code] = src match
 
 /* parsers which will match different types of lexemes and return a parseable token */
 
-def matchNum (state: StateT) : StateT = state match
+private def matchNum (state: StateT) : StateT = state match
     case (Nil, xs) => state
     case (head :: tail, xs) if head.forall( _.isDigit) => ( tail, xs.appended(Num(head.toInt) ) )
     case _ => state 
 
 
-def matchID (state: StateT) : StateT = state match 
+private def matchID (state: StateT) : StateT = state match 
     case (Nil, xs) => state
     case (head :: tail, xs) if !(head(0).isDigit) => ( tail, xs.appended(ID(head)) ) 
     case _ => state
  
-def matchTag (state: StateT) : StateT = state match 
+private def matchTag (state: StateT) : StateT = state match 
     case (Nil, xs) => state
     case (head :: tail, xs) if head.startsWith(":") => ( tail, xs.appended( Tag(head.substring(1)) ) )  
     case _ => state
  
-def matchOperation (state: StateT) : StateT = state match 
+private def matchOperation (state: StateT) : StateT = state match 
     case (Nil, xs) => state
     case (head :: tail, xs) => getOpCode( head ) match
 
@@ -91,7 +93,7 @@ def matchOperation (state: StateT) : StateT = state match
 
 /* Scans line to match tokens */
 
-def evalScanLine (src: StateT) : List[Token] = 
+private def evalScanLine (src: StateT) : List[Token] = 
 
     val state = src . tag . op . id . num 
   
@@ -101,21 +103,21 @@ def evalScanLine (src: StateT) : List[Token] =
     else
         evalScanLine(state)
 
-def scanLine (src: String) : List[Token] = evalScanLine( ( src.split("\\s+").toList, List[Token]() ) ) 
+private def scanLine (src: String) : List[Token] = evalScanLine( ( src.split("\\s+").toList, List[Token]() ) ) 
 
 /* -------------------------------------------------------------------- */ 
 
 /* Parseable tokens will be converted to these, which will be used to create the image */ 
 
-abstract class Parsed
+private abstract class Parsed
 
-case class FlowControl (opCode: Word) extends Parsed
-case class Packable (opCode: Word) extends Parsed
-case class Resolve (id: String) extends Parsed 
-case class Data (dat: Word) extends Parsed
-case class Label(id: String) extends Parsed
+private case class FlowControl (opCode: Word) extends Parsed
+private case class Packable (opCode: Word) extends Parsed
+private case class Resolve (id: String) extends Parsed 
+private case class Data (dat: Word) extends Parsed
+private case class Label(id: String) extends Parsed
 
-case class ErrorMessage (what: String) extends Parsed
+private case class ErrorMessage (what: String) extends Parsed
 
 /* Parser which evaluate tokens based on a grammar using pattern matching */ 
 
@@ -126,8 +128,11 @@ case class ErrorMessage (what: String) extends Parsed
 * < Tag >
 */ 
 
-def parseLine (src: List[Token]) : List[Parsed] = 
+private def parseLine (src: List[Token]) : List[Parsed] = 
     src match
+
+        case (Operation(0xF) | Operation(0x10)) :: tail if VM_Options.optionPackingEnable => 
+            ErrorMessage("store and fetch are not supported with inline packing") :: Nil 
 
         case Operation(x) :: Num (y) :: Nil if checkFlowControl(x) => 
             Packable(1) :: Data(y) :: FlowControl(x) :: Nil
@@ -152,7 +157,7 @@ def parseLine (src: List[Token]) : List[Parsed] =
         case Tag(x) :: Nil => 
             Label(x) :: Nil 
         
-        case Operation(x) :: ID (y) :: Nil if !checkFlowControl(x) => 
+        case Operation(x) :: ID (y) :: Nil if !checkFlowControl(x) =>
             Packable(1) :: Resolve(y) :: Packable(15) :: Packable(x) :: Nil 
         
         case Tag(x) :: Num(y) :: Nil => 
@@ -177,7 +182,7 @@ def parseLine (src: List[Token]) : List[Parsed] =
  
 
 
-def collectParseErrors (parsed: List[Parsed], line: Int = 0) : List[String] = parsed match
+private def collectParseErrors (parsed: List[Parsed], line: Int = 0) : List[String] = parsed match
 
     case ErrorMessage(x) :: tail =>  
         val ret = "["+line.toString+"] Parse Error - " + x
@@ -196,7 +201,7 @@ def collectParseErrors (parsed: List[Parsed], line: Int = 0) : List[String] = pa
         else 
             Nil
 
-def canContinue (src: List[Parsed]) : Either[List[Parsed], String] = 
+private def canContinue (src: List[Parsed]) : Either[List[Parsed], String] = 
     
     val li = collectParseErrors(src) 
     
@@ -207,7 +212,7 @@ def canContinue (src: List[Parsed]) : Either[List[Parsed], String] =
         Left(src) 
 
 
-def continueOrNone(src: List[Parsed]) : Option[ List[Parsed] ] = canContinue(src) match
+private def continueOrNone(src: List[Parsed]) : Option[ List[Parsed] ] = canContinue(src) match
         
     case Left(x) => Some(x) 
     case Right(x) => 
@@ -215,12 +220,12 @@ def continueOrNone(src: List[Parsed]) : Option[ List[Parsed] ] = canContinue(src
         None
 
 
-case class PackState (op: List[Parsed], dat: List[Parsed])
-val emptyPackState = PackState(List[Parsed]() , List[Parsed]()) 
+private case class PackState (op: List[Parsed], dat: List[Parsed])
+private val emptyPackState = PackState(List[Parsed]() , List[Parsed]()) 
 
 
 
-def packOpcode (src: List[Parsed]) : Option[Parsed] = 
+private def packOpcode (src: List[Parsed]) : Option[Parsed] = 
 
     src match
 
@@ -249,7 +254,7 @@ def packOpcode (src: List[Parsed]) : Option[Parsed] =
 /* Looks up to 4 positions away and reorders the list so that data is to the right and operations are to the left */
 /* Will be used to pack the data */
 
-def takePackableWithData (src: List[Parsed], state: PackState = emptyPackState) : (List[Parsed], PackState) = 
+private def takePackableWithData (src: List[Parsed], state: PackState = emptyPackState) : (List[Parsed], PackState) = 
 
 
     /* Only take 4 (word) at a time */
@@ -318,23 +323,23 @@ def pack (src: List[Parsed]) : List[Parsed] =
 
 
 extension (xs: PackState) 
-    def addOp (src: Parsed) : PackState = 
+    private def addOp (src: Parsed) : PackState = 
         PackState( xs.op ::: src :: Nil, xs.dat )
 
-    def addDat (src: Parsed) : PackState = 
+    private def addDat (src: Parsed) : PackState = 
         PackState( xs.op, xs.dat ::: src :: Nil ) 
 
-    def isEmpty : Boolean = 
+    private def isEmpty : Boolean = 
 
         if xs.op.size == 0 && xs.dat.size == 0 then true
         else false
 
-    def isFull : Boolean = 
+    private def isFull : Boolean = 
         
         if xs.op.size >= 4 && xs.dat.size >= 4 then true
         else false
 
-def collectLabelsToMap (
+private def collectLabelsToMap (
     src: List[Parsed],
     addr: Int = 0, 
     map: HashMap[String, Int] = HashMap.empty[String, Int]
@@ -355,7 +360,7 @@ def collectLabelsToMap (
         (map, src) 
 
 
-def resolveAndExtract (src: List[Parsed]) : Array[Word] = 
+private def resolveAndExtract (src: List[Parsed]) : Array[Word] = 
 
     val result = collectLabelsToMap(src)
     result(1)
@@ -369,30 +374,30 @@ def resolveAndExtract (src: List[Parsed]) : Array[Word] =
     ) .toArray
 
 extension[F] (xs: Option[F]) 
-    def <+> [A] (f: F => A) : Option[A] = xs match
+    private def <+> [A] (f: F => A) : Option[A] = xs match
 
         case Some(value) => Some( f(value) )
         case None => None 
 
-    def +>[A] (f: F => Option[A]) : Option[A] = xs match
+    private def +>[A] (f: F => Option[A]) : Option[A] = xs match
 
         case Some(value) => f(value) 
         case None => None
 
-    def <+[A] (f: Option[F] => A) : Option[A] = xs match
+    private def <+[A] (f: Option[F] => A) : Option[A] = xs match
         
         case Some(value) => Some(f( xs ))
         case None => None
 
 extension (xs: StateT)
 
-    def num = matchNum(xs)
-    def id = matchID(xs) 
-    def tag = matchTag(xs)
-    def op = matchOperation(xs)
+    private def num = matchNum(xs)
+    private def id = matchID(xs) 
+    private def tag = matchTag(xs)
+    private def op = matchOperation(xs)
 
 extension (xs: List[Parsed]) 
-    def continue : Option[ List[Parsed] ] = continueOrNone(xs) 
+    private def continue : Option[ List[Parsed] ] = continueOrNone(xs) 
 
 extension (xs: String)
     
@@ -401,11 +406,21 @@ extension (xs: String)
         
         (parsed.continue <+> pack) +> continue <+> resolveAndExtract
 
-    def assembleAndRun : Option[NGAInstance] = xs.assemble match
+    def assembleAndRun : Option[Instance[Word]] = xs.assemble match
 
-        case Some(arr) => 
-            val x = NGAInstance(arr) 
-            Some(x.run) 
+        case Some(arr) =>  
+            Some(DefaultInstance(arr).run)  
         case None =>
             None
-            
+
+/* Interfaces */ 
+
+trait InlineAssembler[A] (f: A=>String, buf: A): 
+        
+    def assembleTo[B](g: Array[Word] => B) : Option[B] = 
+        f(buf).assemble <+> g
+        
+    def assembleAndRun[F, B] : Option[Instance[Word]] = 
+        f(buf).assembleAndRun
+
+class DefaultAssembler (s: String) extends InlineAssembler[String]((s) => s, s) 

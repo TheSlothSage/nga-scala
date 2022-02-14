@@ -17,7 +17,7 @@ import nga.*
 
 // LIT, LIT, ADD, END
 val img = Array ( 0x1, 1, 0x1, 2, 0x11, 0x1A )
-val inst = NGAInstance( img )
+val inst = DefaultInstance( img )
 inst.run
 
 // Output in Data Stack -> 3
@@ -31,7 +31,10 @@ lit 1
 ret
 :foo
 lit 2
-ret""".assembleAndRun
+ret"""
+
+var x = DefaultAssembler(asm_img) 
+x = x.assembleAndRun
 
 // Output in Data Stack -> 0 
 
@@ -49,6 +52,6 @@ Development Goals:
 - [x] Implement working VM and interface
 - [x] Implement tests
 - [ ] Write documentation for VM code
-- [ ] Load raw images from multiple sources
+- [x] Load raw images from multiple sources
 - [x] Implement Assembler and inline assmebling
 - [ ] Implement REPL 
