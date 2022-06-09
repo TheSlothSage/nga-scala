@@ -5,10 +5,10 @@ NGA is a very simple machine and is considered to be a proper MISC (Minimal Inst
 
 The Forth implementation has 30 instructions, including support for I/O, with values of 32 bit width. 
 
-The machine is stack based and uses two stacks, one called the data stack, and one called the address stack.
-The address stack is used to keep state of a call trace, allowing one to return from subroutines as one would expect from other computers, while the data stack allows one to push and pop from the stack data to be operated on. This allows the computer to only keep three registers: the instruction pointer, the data pointer, and the address pointer. 
+The machine is stack based and uses two stacks, a data stack and a address stack.
+The address stack is used to keep state of a call trace, while the data stack allows one to push and pop from the stack data to be operated on. This allows the computer to only keep three registers: the instruction pointer, the data pointer, and the address pointer. 
 
-The implementation also provides support for instruction packing allowing for superior memory utilization. 
+The implementation also provides support for instruction packing allowing for efficient memory utilization. 
 
 Example: 
 
